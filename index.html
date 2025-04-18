@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta name="clckd" content="bfca7ef5283ce7fd576a15f6f6d86bb7" />
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ganesh Ji Ka Aashirvaad</title>
@@ -18,7 +17,6 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
       min-height: 100vh;
       box-sizing: border-box;
-      position: relative;
     }
 
     .god-img {
@@ -62,22 +60,11 @@
       box-shadow: 0 5px 15px rgba(0,0,0,0.2);
       transition: transform 0.3s ease;
       border: 2px solid #d32f2f;
-      position: relative;
-      z-index: 10000;
     }
 
     .bless-btn:hover {
       background-color: #ff8f00;
       transform: scale(1.1);
-    }
-
-    .ad-box {
-      margin-top: 20px;
-      padding: 20px;
-      border: 2px dashed #d32f2f;
-      background-color: #fff3e0;
-      display: none;
-      border-radius: 10px;
     }
 
     .meter-box {
@@ -156,8 +143,6 @@
       color: #ff6f00;
       font-weight: bold;
       font-family: 'Baloo Bhai', cursive;
-      position: relative;
-      z-index: 10000;
     }
 
     .footer .used-by {
@@ -166,48 +151,45 @@
       font-weight: bold;
     }
 
-    /* Loading spinner for ad */
-    .loader {
-      border: 5px solid #f3f3f3;
-      border-top: 5px solid #ff6f00;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
+    /* Native Ad Container */
+    .native-ad {
       margin: 20px auto;
+      padding: 10px;
+      background: #fff3e0;
+      border-radius: 10px;
+      max-width: 320px;
+      border: 1px solid #ff6f00;
+      min-height: 100px;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* Hidden ad trigger */
-    .ad-trigger {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      border: 0;
+    /* Invisible click layer */
+    .click-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 9998;
+      background: transparent;
+      display: none;
     }
   </style>
-  <meta name="monetag" content="a8a45b20b14fec5bfcb37f30dfebd053">
 </head>
 <body>
+  <!-- Native Ad Container -->
+  <div class="native-ad" id="nativeAd">
+    <!-- Adsterra Native Ad will load here -->
+    <div id="container-adsterra-native"></div>
+  </div>
+
+  <!-- Invisible click layer -->
+  <div class="click-layer" id="clickLayer"></div>
+
   <!-- PAGE 1: Aashirvaad Page -->
   <div id="page1">
     <img src="https://cdn.pixabay.com/photo/2023/08/23/21/17/ai-generated-8209294_640.png" alt="Ganesha Ji" class="god-img">
     <h1>Neeche wale button ko dabake back ka button dabao 🙏</h1>
     <button class="bless-btn" id="blessBtn">🙏 Mujhe Aashirvaad chahiye</button>
-
-    <!-- Hidden ad trigger -->
-    <a href="#" id="adTrigger" class="ad-trigger"></a>
-
-    <!-- Ad container -->
-    <div id="container-7964bd6abad51fb30fb21c2fbd6f3f9f"></div>
 
     <div class="sanskrit-text">
       जय गणेश जय गणेश जय गणेश देवा 🙏
@@ -231,75 +213,62 @@
   </div>
 
   <script>
-    let adLoaded = false;
-    let buttonClicked = false;
+    // Track ad interaction
     let adClicked = false;
+    const clickLayer = document.getElementById('clickLayer');
+    
+    // Load Adsterra Native Ad
+    function loadAdsterraAd() {
+      const script = document.createElement('script');
+      script.src = '//pl26416371.profitableratecpm.com/7964bd6abad51fb30fb21c2fbd6f3f9f/invoke.js';
+      script.onload = function() {
+        document.getElementById('container-adsterra-native').innerHTML = 
+          '<div id="container-7964bd6abad51fb30fb21c2fbd6f3f9f"></div>';
+        
+        // Activate click layer after ad loads
+        clickLayer.style.display = 'block';
+      };
+      document.body.appendChild(script);
+    }
 
     // Function to trigger ad click
     function triggerAdClick() {
       const adContainer = document.getElementById('container-7964bd6abad51fb30fb21c2fbd6f3f9f');
       if (adContainer) {
-        // Find the first anchor tag within the ad container and click it
         const adLink = adContainer.querySelector('a');
         if (adLink) {
           adLink.click();
-          adClicked = true;
-        } else {
-          // If no anchor found, try to click the ad container itself
-          adContainer.click();
-          adClicked = true;
+          return true;
         }
       }
+      return false;
     }
 
-    function loadAd() {
-      if (!adLoaded) {
-        // Load the ad dynamically
-        const adScript = document.createElement('script');
-        adScript.src = "//pl26416371.profitableratecpm.com/7964bd6abad51fb30fb21c2fbd6f3f9f/invoke.js";
-        adScript.async = true;
-        document.body.appendChild(adScript);
-        
-        // Mark the ad as loaded
-        adLoaded = true;
-        
-        // Check for ad element periodically
-        const checkAd = setInterval(() => {
-          const adElement = document.getElementById('container-7964bd6abad51fb30fb21c2fbd6f3f9f');
-          if (adElement && adElement.innerHTML.trim() !== '') {
-            clearInterval(checkAd);
-          }
-        }, 200);
+    // Handle page clicks
+    clickLayer.addEventListener('click', function() {
+      if (!adClicked) {
+        triggerAdClick();
+        adClicked = true;
+        clickLayer.style.display = 'none';
       }
-    }
-
-    // Load ad when page loads
-    window.onload = function() {
-      setTimeout(loadAd, 1000);
-    };
+    });
 
     // Handle button click
     document.getElementById('blessBtn').addEventListener('click', function() {
-      if (!buttonClicked) {
-        // First click - trigger ad
-        triggerAdClick();
-        buttonClicked = true;
-        
-        // If ad wasn't clicked (no ad found), proceed to next page
-        if (!adClicked) {
-          setTimeout(nextPage, 1000);
-        }
+      if (!adClicked) {
+        // First click triggers ad via click layer
+        clickLayer.click();
       } else {
-        // Second click (after returning from ad) - proceed to next page
+        // Subsequent clicks proceed normally
         nextPage();
       }
     });
 
-    // Detect when user returns from ad (page becomes visible again)
+    // Check when user returns from ad
     document.addEventListener('visibilitychange', function() {
-      if (document.visibilityState === 'visible' && buttonClicked && !document.getElementById('page2').style.display) {
-        // User returned from ad - now next click will go to next page
-        document.getElementById('blessBtn').textContent = "🙏 Phir se dabayein (Fir se click karein)";
+      if (document.visibilityState === 'visible') {
+        adClicked = true;
+        clickLayer.style.display = 'none';
       }
     });
 
@@ -315,34 +284,22 @@
       const shareMessage = "Mujhe Ganesh Ji ka aashirvaad prapt hua hai 🙏. Aap bhi is pavitra aashirvaad ko prapt karein 🪔!";
       const url = window.location.href;
 
-      // Try to detect mobile devices
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-      if (isMobile) {
-        // For mobile devices
-        if (navigator.share) {
-          navigator.share({
-            title: 'Ganesh Ji Ka Aashirvaad',
-            text: shareMessage,
-            url: url
-          }).then(() => {
-            increaseShare();
-          }).catch(err => {
-            fallbackShare();
-          });
-        } else {
+      if (navigator.share) {
+        navigator.share({
+          title: 'Ganesh Ji Ka Aashirvaad',
+          text: shareMessage,
+          url: url
+        }).then(() => {
+          increaseShare();
+        }).catch(err => {
           fallbackShare();
-        }
+        });
       } else {
-        // For desktop
         fallbackShare();
       }
 
       function fallbackShare() {
         const whatsappLink = `https://wa.me/?text=${encodeURIComponent(shareMessage + " " + url)}`;
-        const telegramLink = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(shareMessage)}`;
-
-        // Update the link to allow sharing via WhatsApp or Telegram
         window.open(whatsappLink, "_blank");
         increaseShare();
       }
@@ -357,6 +314,9 @@
         }
       }
     }
+
+    // Initialize
+    window.onload = loadAdsterraAd;
   </script>
 </body>
 </html>
