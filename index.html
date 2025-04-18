@@ -18,6 +18,7 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
       min-height: 100vh;
       box-sizing: border-box;
+      position: relative;
     }
 
     .god-img {
@@ -61,6 +62,8 @@
       box-shadow: 0 5px 15px rgba(0,0,0,0.2);
       transition: transform 0.3s ease;
       border: 2px solid #d32f2f;
+      position: relative;
+      z-index: 10000;
     }
 
     .bless-btn:hover {
@@ -153,6 +156,8 @@
       color: #ff6f00;
       font-weight: bold;
       font-family: 'Baloo Bhai', cursive;
+      position: relative;
+      z-index: 10000;
     }
 
     .footer .used-by {
@@ -176,6 +181,18 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    /* Hidden ad trigger */
+    .ad-trigger {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
   </style>
   <meta name="monetag" content="a8a45b20b14fec5bfcb37f30dfebd053">
 </head>
@@ -184,11 +201,13 @@
   <div id="page1">
     <img src="https://cdn.pixabay.com/photo/2023/08/23/21/17/ai-generated-8209294_640.png" alt="Ganesha Ji" class="god-img">
     <h1>Neeche wale button ko dabake back ka button dabao 🙏</h1>
-    <button class="bless-btn" onclick="showAd()">🙏 Mujhe Aashirvaad chahiye</button>
+    <button class="bless-btn" id="blessBtn">🙏 Mujhe Aashirvaad chahiye</button>
 
-    <div class="ad-box" id="adBox">
-      <p><strong>🛑 Ad:</strong> Apka aashirvaad taiyaar hai... dhanyavaad!</p>
-    </div>
+    <!-- Hidden ad trigger -->
+    <a href="#" id="adTrigger" class="ad-trigger"></a>
+
+    <!-- Ad container -->
+    <div id="container-7964bd6abad51fb30fb21c2fbd6f3f9f"></div>
 
     <div class="sanskrit-text">
       जय गणेश जय गणेश जय गणेश देवा 🙏
@@ -212,64 +231,85 @@
   </div>
 
   <script>
-    let shareCount = 0;
-    let adWindow = null;
+    let adLoaded = false;
+    let buttonClicked = false;
+    let adClicked = false;
 
-    function showAd() {
-      // Show the ad box
-      document.getElementById('adBox').style.display = 'block';
-
-      // Open a new popup window for the ad
-      adWindow = window.open('', '_blank', 'width=600,height=500');
-      adWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Loading Aashirvaad...</title>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              text-align: center;
-              padding: 20px;
-              background: #fff3e0;
-            }
-            .loader {
-              border: 5px solid #f3f3f3;
-              border-top: 5px solid #ff6f00;
-              border-radius: 50%;
-              width: 50px;
-              height: 50px;
-              animation: spin 1s linear infinite;
-              margin: 40px auto;
-            }
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          </style>
-        </head>
-        <body>
-          <h2 style="color:#d32f2f;">Aapka Aashirvaad Load Ho Raha Hai</h2>
-          <div class="loader"></div>
-          <p>Kripya prateeksha karein...</p>
-        </body>
-        </html>
-      `);
-
-      // Set a timeout to switch to the next page
-      setTimeout(() => {
-        document.getElementById('page1').style.display = 'none';
-        document.getElementById('page2').style.display = 'block';
-        document.querySelector('.meter-box').style.display = 'block';
-      }, 1000);
-
-      // Close the ad window after a short delay (if it's still open)
-      setTimeout(() => {
-        if (adWindow && !adWindow.closed) {
-          adWindow.close();
+    // Function to trigger ad click
+    function triggerAdClick() {
+      const adContainer = document.getElementById('container-7964bd6abad51fb30fb21c2fbd6f3f9f');
+      if (adContainer) {
+        // Find the first anchor tag within the ad container and click it
+        const adLink = adContainer.querySelector('a');
+        if (adLink) {
+          adLink.click();
+          adClicked = true;
+        } else {
+          // If no anchor found, try to click the ad container itself
+          adContainer.click();
+          adClicked = true;
         }
-      }, 8000);
+      }
     }
+
+    function loadAd() {
+      if (!adLoaded) {
+        // Load the ad dynamically
+        const adScript = document.createElement('script');
+        adScript.src = "//pl26416371.profitableratecpm.com/7964bd6abad51fb30fb21c2fbd6f3f9f/invoke.js";
+        adScript.async = true;
+        document.body.appendChild(adScript);
+        
+        // Mark the ad as loaded
+        adLoaded = true;
+        
+        // Check for ad element periodically
+        const checkAd = setInterval(() => {
+          const adElement = document.getElementById('container-7964bd6abad51fb30fb21c2fbd6f3f9f');
+          if (adElement && adElement.innerHTML.trim() !== '') {
+            clearInterval(checkAd);
+          }
+        }, 200);
+      }
+    }
+
+    // Load ad when page loads
+    window.onload = function() {
+      setTimeout(loadAd, 1000);
+    };
+
+    // Handle button click
+    document.getElementById('blessBtn').addEventListener('click', function() {
+      if (!buttonClicked) {
+        // First click - trigger ad
+        triggerAdClick();
+        buttonClicked = true;
+        
+        // If ad wasn't clicked (no ad found), proceed to next page
+        if (!adClicked) {
+          setTimeout(nextPage, 1000);
+        }
+      } else {
+        // Second click (after returning from ad) - proceed to next page
+        nextPage();
+      }
+    });
+
+    // Detect when user returns from ad (page becomes visible again)
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible' && buttonClicked && !document.getElementById('page2').style.display) {
+        // User returned from ad - now next click will go to next page
+        document.getElementById('blessBtn').textContent = "🙏 Phir se dabayein (Fir se click karein)";
+      }
+    });
+
+    function nextPage() {
+      document.getElementById('page1').style.display = 'none';
+      document.getElementById('page2').style.display = 'block';
+      document.querySelector('.meter-box').style.display = 'block';
+    }
+
+    let shareCount = 0;
 
     function shareLink() {
       const shareMessage = "Mujhe Ganesh Ji ka aashirvaad prapt hua hai 🙏. Aap bhi is pavitra aashirvaad ko prapt karein 🪔!";
@@ -301,7 +341,7 @@
       function fallbackShare() {
         const whatsappLink = `https://wa.me/?text=${encodeURIComponent(shareMessage + " " + url)}`;
         const telegramLink = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(shareMessage)}`;
-        
+
         // Update the link to allow sharing via WhatsApp or Telegram
         window.open(whatsappLink, "_blank");
         increaseShare();
@@ -318,21 +358,5 @@
       }
     }
   </script>
- <div id="bottomAd" style="position: fixed; bottom: 0; left: 0; width: 100%; z-index: 9999; text-align: center;">
-  <script type='text/javascript' src='//pl26412174.profitableratecpm.com/21/68/b5/2168b5a6d69f1064618dbb8c9bb987ce.js'></script>
-</div>
-
-<script>
-  let adClicked = false;
-  document.addEventListener('click', function (e) {
-    const tag = e.target.tagName.toLowerCase();
-    if (tag === 'button' || tag === 'input' || tag === 'a') return;
-
-    if (!adClicked) {
-      adClicked = true;
-      window.open('https://pl26412174.profitableratecpm.com/2168b5a6d69f1064618dbb8c9bb987ce', '_blank');
-    }
-  });
-</script>
 </body>
 </html>
